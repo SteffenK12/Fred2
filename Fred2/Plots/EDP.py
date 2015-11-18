@@ -1,18 +1,25 @@
-    import Fred2.Core.Peptide
-    import Fred2.Core.Allele
-    import Fred2.EpitopePrediction.PSSM as PSSM_df
-    import matplotlib
-    import numpy as np
-    import matplotlib.pyplot as plt
+from Fred2.Core import Protein, Generator, Allele
+import Fred2.Core.Peptide
+from Fred2.EpitopePrediction import EpitopePredictorFactory
+import Fred2.Core.Allele
+import Fred2.EpitopePrediction.PSSM as PSSM_df
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 
-def epitope_density_plot(epitopeResult, transcript_id,method=None):
+def epitope_density_plot(epitopeResult, transcript_id, method=None):
     """
         Description
     """
-
-
+    # -----------------------------------------------------------------------------------
+    # what protein is the peptide from
+    # -----------------------------------------------------------------------------------
+    s = epitopeResult
+    print(s)
+    epitope_matrix = np.zeros(shape=(10,10))
+    print(epitope_matrix)
     # -----------------------------------------------------------------------------------
     # define plot
     # -----------------------------------------------------------------------------------
@@ -28,7 +35,7 @@ def epitope_density_plot(epitopeResult, transcript_id,method=None):
     #ax1 = fig.add_subplot(gs[0])
     ax1.plot([1,2])
     plt.title('Epitope_Density_Plot')
-    plt.show()
+    #plt.show()
     # -----------------------------------------------------------------------------------
     # define epitope matrix
     # -----------------------------------------------------------------------------------
@@ -41,9 +48,9 @@ def epitope_density_plot(epitopeResult, transcript_id,method=None):
     """
 
 
-protein = Protein("ASDERWQTGHKILPMNVFCY", _gene_id='gene 1', _transcript_id='someID')
-peps = generate_peptides_from_proteins(protein, 9)
-result = EpitopePredictionFactory("BIMAS").predict(peps, alleles=Allele("HLA-A*02:01"))
+protein = Protein("ASDERWQTGHKILPMNVFCY", gene_id=1, transcript_id="someID")
+peps = Generator.generate_peptides_from_proteins(protein, 9)
+result = EpitopePredictorFactory("BIMAS").predict(peps, alleles=Allele("HLA-A*02:01"))
 
 epitope_density_plot(result, "someID",method="BIMAS")
 
