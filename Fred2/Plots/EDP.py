@@ -68,37 +68,46 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     cmap = plt.cm.get_cmap('Reds')
     cmap.set_bad(color='0.75', alpha=None)
 
-    matrix_width = epitope_matrix.shape[1]
 
-    fig = plt.figure(figsize=(epitope_matrix.shape[1]*0.5,epitope_matrix.shape[0]))
+    fig = plt.figure()
+    #fig.set_size_inches(epitope_matrix.shape[1]*0.5,epitope_matrix.shape[0], forward=True)
     gs = matplotlib.gridspec.GridSpec(1, 1, height_ratios=[1], width_ratios=[1])
     ax1 = plt.subplot(gs[0])
     if cm_max and cm_min is None:
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=epitope_matrix.max(), vmin=epitope_matrix.min())
     else:
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=cm_max, vmin=cm_min)
+
     #ax1 = fig.add_subplot(gs[0])
     #plt.xlim([0, len(protein_seq)])
 
-
-    ax1.xaxis.tick_top()
     LABEL_SIZE = 10
     LABEL_X_OFFSET = 0.5
     LABEL_Y_OFFSET = 0.5
-    #column_labels = range(0, len(protein_seq), 1)
-    column_labels = list(protein_seq)
-    ax1.set_xticks(np.arange(matrix_width))
+    ax1.xaxis.tick_top()
+    ax1.set_xticks(np.arange(epitope_matrix.shape[1]))
     ax1.set_yticks(np.arange(epitope_matrix.shape[0]))
+    y_label_distance = 0.7
+    x_label_distance = 0.375
+    column_labels = list(protein_seq)
+    for i in range(epitope_matrix.shape[0]):
+        # write yaxis labels as text
+        ax1.text(-2.25,y_label_distance, str(epitopeResult.columns.values[i]), size = 10)
+        y_label_distance += 1
+    for i in range(epitope_matrix.shape[1]):
+        # write xaxis labels as text
+        ax1.text(x_label_distance, -0.275, str(column_labels[i]), size = 10)
+        x_label_distance += 1
     plt.tick_params(axis='x', labelsize=LABEL_SIZE)
     plt.tick_params(axis='y', labelsize=LABEL_SIZE)
-    #ax1.set_xticklabels(column_labels)
-    #ax1.set_yticklabels(epitopeResult.columns.values)
-    ax1.set_xticklabels('')
     ax1.set_yticklabels('')
-    #ax1.set_ylim(24, 0)
-    #fig.savefig('epitope_density_plot') #save figure with given filename
+    ax1.set_xticklabels('')
+    ax1.set_ylim(20, 0)
+    #fig.savefig('epitope_density_plot.pdf') #save figure with given filename
     plt.grid(b=True, which='major', axis='both', color='black', linestyle='-')
-    #ax1.yaxis.set_major_formatter(matplotlib.ticker.NullFormatter())
+    cbar = fig.colorbar(cm)
+    cbar.ax.get_yaxis().labelpad = 15
+    cbar.ax.set_ylabel('epitope probability', rotation=270)
     plt.show()
     plt.close(fig)
 
