@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import re
 
 
-def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None, cm_min=None):
+def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None, cm_min=None, show_additional_plot=True):
     """
         Description
 
@@ -64,22 +64,19 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     # -----------------------------------------------------------------------------------
     #plt.rc('font', family='','lines ,lw=2 ,c='')
 
-
     cmap = plt.cm.get_cmap('Reds')
     cmap.set_bad(color='0.75', alpha=None)
 
-
-    fig = plt.figure()
+    allele_num = epitope_matrix.shape[0]
+    inch_per_box = 0.75
+    fig = plt.figure(figsize=(len(protein_seq),allele_num))
     #fig.set_size_inches(epitope_matrix.shape[1]*0.5,epitope_matrix.shape[0], forward=True)
-    gs = matplotlib.gridspec.GridSpec(1, 1, height_ratios=[1], width_ratios=[1])
-    ax1 = plt.subplot(gs[0])
+    gs = matplotlib.gridspec.GridSpec(2, 1, height_ratios=[allele_num/3*inch_per_box,1], width_ratios=[len(protein_seq),1])
+    ax1 = plt.subplot(gs[0, :])
     if cm_max and cm_min is None:
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=epitope_matrix.max(), vmin=epitope_matrix.min())
     else:
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=cm_max, vmin=cm_min)
-
-    #ax1 = fig.add_subplot(gs[0])
-    #plt.xlim([0, len(protein_seq)])
 
     LABEL_SIZE = 10
     LABEL_X_OFFSET = 0.5
@@ -87,27 +84,45 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     ax1.xaxis.tick_top()
     ax1.set_xticks(np.arange(epitope_matrix.shape[1]))
     ax1.set_yticks(np.arange(epitope_matrix.shape[0]))
+    ax1.set_yticklabels('')
+    ax1.set_xticklabels('')
+    #ax1.set_ylim(20, 0)
+    plt.tick_params(axis='x', labelsize=LABEL_SIZE)
+    plt.tick_params(axis='y', labelsize=LABEL_SIZE)
     y_label_distance = 0.7
     x_label_distance = 0.375
     column_labels = list(protein_seq)
     for i in range(epitope_matrix.shape[0]):
         # write yaxis labels as text
-        ax1.text(-2.25,y_label_distance, str(epitopeResult.columns.values[i]), size = 10)
+        ax1.text(-1,y_label_distance-inch_per_box/2, str(epitopeResult.columns.values[i]), size = 10)
         y_label_distance += 1
     for i in range(epitope_matrix.shape[1]):
         # write xaxis labels as text
-        ax1.text(x_label_distance, -0.275, str(column_labels[i]), size = 10)
+        ax1.text(x_label_distance, allele_num+0.15, str(column_labels[i]), size = 10)
         x_label_distance += 1
-    plt.tick_params(axis='x', labelsize=LABEL_SIZE)
-    plt.tick_params(axis='y', labelsize=LABEL_SIZE)
-    ax1.set_yticklabels('')
-    ax1.set_xticklabels('')
-    ax1.set_ylim(20, 0)
     #fig.savefig('epitope_density_plot.pdf') #save figure with given filename
     plt.grid(b=True, which='major', axis='both', color='black', linestyle='-')
-    cbar = fig.colorbar(cm)
-    cbar.ax.get_yaxis().labelpad = 15
-    cbar.ax.set_ylabel('epitope probability', rotation=270)
+
+    #cbar = fig.colorbar(cm, ax=ax1)
+    #cbar.ax.get_yaxis().labelpad = 15
+    #cbar.ax.set_ylabel('title', rotation=270)
+    cbaxes = fig.add_axes([0.89, 0.63, 0.02, 0.25])
+    cb = plt.colorbar(cm, cax = cbaxes, ticks=[0, cm_max])
+    #cb.ax.set_yticklabels(["{:+>4.3f}".format(v) for v in [0, cm_max]])
+    cb.ax.xaxis.set_ticks_position("none")
+    cb.ax.yaxis.set_ticks_position("none")
+    #cb.outline.set_linewidth(10)
+    cb.ax.tick_params(labelsize=LABEL_SIZE)
+    if show_additional_plot is True:
+        ax2 = plt.subplot(gs[1, :])
+        #labels = ax2.get_yticklabels()
+        #labels[0] = 0
+        #labels[-1] = 1
+        #ax2.set_yticklabels(labels)
+        epitope_matrix_2_y = np.sum(epitope_matrix, axis=0)
+        #ax2.plot([i + 0.5 for i in xrange(len(protein_seq))],epitope_matrix_2_y, 'r')
+        ax2.fill_between(np.arange(len(protein_seq)) + 0.5, epitope_matrix_2_y, facecolor='#F97E60')
+    #plt.subplots_adjust(hspace=0.2)
     plt.show()
     plt.close(fig)
 
