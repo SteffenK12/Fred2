@@ -127,5 +127,5 @@ def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     cb.ax.tick_params(labelsize=LABEL_SIZE)
 
     plt.subplots_adjust(hspace=0.2)
-    fig.savefig(savepath, dpi=75)
+    fig.savefig(savepath, dp8i=75)
     plt.close(fig)
