@@ -12,25 +12,26 @@ import math
 import operator
 
 
-
-def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None, cm_min=None, cmp=lambda a,b: True, threshold=None,  savepath='output.pdf'):
+def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None, cm_min=None, cmp=lambda a, b: True,
+                         threshold=None, savepath=None):
     """
 
         :param epitopeResult: Pandas Dataframe of an epitope prediction
         as :class:`~Fred2.Core.Result.EpitopePredictionResult` object
         :type epitopeResult: :class:`~Fred2.Core.Base.AEpitopePredictionResult`
         :param str transcript_id: The unique transcript ID of the :class:`~Fred2.Core.Protein.Protein` used in the plot
-        :param method: Method used for epitope prediction
+        :param str method: Method used for epitope prediction
         from :class:`~Fred2.EpitopePrediction.PSSM.APSSMEpitopePrediction` resulting in
         an :class:`~Fred2.Core.Result.EpitopePredictionResult` object
         :type method:
         :param int cm_max: Maximum density for epitope_cluster_plot, default=None
         :param int cm_min: Minimum density for epitope_cluster_plot, default=None
         :param cmp: Comparator used to check predicted value vs threshold
-        :param threshold: Threshold used to filter epitopes
-        :param savepath: Path and name of the file to be saved
+        :param dict(str, float) threshold: Threshold used to filter epitopes
+        :param str savepath: Path and name of the file to be saved
         :results: Draws an epitope_cluster_plot for a given EpitopePredictionResult object and saves it under savepath
-        :rtype: Figure object of the created epitope_cluster_plot
+        :returns: figure object of plot
+        :rtype:
     """
 
     # -----------------------------------------------------------------------------------
@@ -59,6 +60,8 @@ def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     # -----------------------------------------------------------------------------------
 
     ecp = {}
+    value_min = float("inf")
+    value_max = -float("inf")
     for allele in epitopeResult.columns:
         ecp_a = []
         previous_pos = -1
@@ -74,10 +77,16 @@ def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None,
                         if len(ecp_a)-1 < counter:  # check if ecp_a needs new row
                             zero_add(ecp_a, len(protein_seq))   # expand ecp_a
                             for epi_pos in xrange(pos, pos+len(epitope)-1):  # write new epitope
-                                ecp_a[counter][epi_pos] = max(0, 1 - math.log(epi_value, 50000))
+                                if method in ['smm','smmpmbec','arb','comblibsidney']:
+                                    ecp_a[counter][epi_pos] = max(0, 1 - math.log(epi_value, 50000))
+                                else:
+                                    ecp_a[counter][epi_pos] = epi_value
                         else:  # if ecp_a is big enough
                             for epi_pos in xrange(pos, pos+len(epitope)-1):  # write new epitope
-                                ecp_a[counter][epi_pos] = max(0, 1 - math.log(epi_value, 50000))
+                                if method in ['smm','smmpmbec','arb','comblibsidney']:
+                                    ecp_a[counter][epi_pos] = max(0, 1 - math.log(epi_value, 50000))
+                                else:
+                                    ecp_a[counter][epi_pos] = epi_value
                     previous_pos = pos
                     previous_length = len(epitope)
         if sum(sum(v) for v in ecp_a) > 0:
@@ -96,6 +105,10 @@ def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None,
 
     cmap = plt.cm.get_cmap('Reds')
     cmap.set_bad(color='0.75', alpha=None)
+
+    # -----------------------------------------------------------------------------------
+    # Define subplots, axes and labels
+    # -----------------------------------------------------------------------------------
 
     column_labels = list(protein_seq)
     x_label_distance = 0.375
@@ -127,5 +140,6 @@ def epitope_cluster_plot(epitopeResult, transcript_id, method=None, cm_max=None,
     cb.ax.tick_params(labelsize=LABEL_SIZE)
 
     plt.subplots_adjust(hspace=0.2)
-    fig.savefig(savepath, dp8i=75)
-    plt.close(fig)
+    if savepath is not None:
+        fig.savefig(savepath, dpi=75)
+    return fig

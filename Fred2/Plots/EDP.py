@@ -5,7 +5,7 @@ import math
 
 
 def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None, cm_min=None, show_additional_plot=True,
-                         savepath='out.pdf'):
+                         savepath=None):
     """
 
         :param epitopeResult: Pandas Dataframe of an epitope prediction
@@ -46,8 +46,11 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
         for key, values in peptide_per_pos.iteritems():
             for i in values:
                 for k in xrange(i, i + len(key) - 1):
-                    epitope_matrix[a][k] += max(0, 1 - math.log(
-                        epitopeResult.loc[(key, epitopeResult.index.levels[1][0]), allele], 50000))
+                    if method in ['smm','smmpmbec','arb','comblibsidney']:
+                        epitope_matrix[a][k] += max(0, 1 - math.log(
+                            epitopeResult.loc[(key, epitopeResult.index.levels[1][0]), allele], 50000))
+                    else:
+                        epitope_matrix[a][k] += epitopeResult.loc[(key, epitopeResult.index.levels[1][0]), allele]
 
     # -----------------------------------------------------------------------------------
     # Define plot
@@ -65,6 +68,10 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=epitope_matrix.max(), vmin=epitope_matrix.min())
     else:
         cm = plt.pcolormesh(epitope_matrix, cmap=cmap, vmax=cm_max, vmin=cm_min)
+
+    # -----------------------------------------------------------------------------------
+    # Define plot axes and labels
+    # -----------------------------------------------------------------------------------
 
     LABEL_SIZE = 10
     ax1.xaxis.tick_top()
@@ -107,5 +114,6 @@ def epitope_density_plot(epitopeResult, transcript_id, method=None, cm_max=None,
         ax2.fill_between(np.arange(len(protein_seq)) + 0.5, epitope_matrix_2_y, facecolor='#F97E60')
 
     plt.subplots_adjust(top=top_adjust)
-    plt.savefig(savepath, dpi=100)
-    plt.close(fig)
+    if savepath is not None:
+        plt.savefig(savepath, dpi=100)
+    return fig
